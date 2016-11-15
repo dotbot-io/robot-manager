@@ -15,8 +15,8 @@ class GetEnvironment(Resource):
 	def get(self):
 		return "ok"
 		import json
-		source1 = app.config["ROS_LOCAL_SOURCE"]
-		source2 = app.config["ROS_GLOBAL_SOURCE"]
+		source1 = app.config["ROS_GLOBAL_SOURCE"]
+		source2 = app.config["ROS_LOCAL_SOURCE"]
 		dump = 'python -c "import os, json;print json.dumps(dict(os.environ))"'
 		pipe = subprocess.Popen(['/bin/bash', '-c', '%s && %s && %s' %(source1,source2,dump)], stdout=subprocess.PIPE)
 		print pipe
