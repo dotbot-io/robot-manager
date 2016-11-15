@@ -1,10 +1,9 @@
 from flask import Flask, request
-from flask_restful import Resource, Api
+from flask_restful import Resource
 import os, subprocess
-from flask_cors import CORS, cross_origin
+from flask_cors import cross_origin
 from flask import jsonify
-from app import api
-from app import app
+from . import rest_api, api
 
 ROBOT_NAME = "macbook"
 ROS_VERSION = "jade"
@@ -76,13 +75,13 @@ class GetCoreAddress(Resource):
 		print ("received core is active on" + json_data["coreAddress"])
 		return "ok"
 
-api.add_resource(GetCoreAddress, '/getCoreAddress')
-api.add_resource(RosKill, '/roskill')
-api.add_resource(Rosnode, '/rosnode')
-api.add_resource(Rosfile, '/rosfile')
-api.add_resource(Robot, '/discovery')
-api.add_resource(Roscore, '/roscore')
+rest_api.add_resource(GetCoreAddress, '/getCoreAddress')
+rest_api.add_resource(RosKill, '/roskill')
+rest_api.add_resource(Rosnode, '/rosnode')
+rest_api.add_resource(Rosfile, '/rosfile')
+rest_api.add_resource(Robot, '/discovery')
+rest_api.add_resource(Roscore, '/roscore')
 
-@app.route('/')
+@api.route('/')
 def index():
 	return "Hello"
