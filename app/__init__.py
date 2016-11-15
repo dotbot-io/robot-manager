@@ -6,5 +6,9 @@ app = Flask(__name__)
 api = Api(app)
 cors = CORS(app, resources={r"/": {"origins": "*"}})
 
+
+from app.compiler import compiler_bp
+app.register_blueprint(compiler_bp)
+
 from app import views
 
