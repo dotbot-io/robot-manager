@@ -1,15 +1,10 @@
 from flask import Flask, request
 from flask_restful import Resource, Api
-
+import os, subprocess
 from flask_cors import CORS, cross_origin
 from flask import jsonify
 from app import api
 from app import app
-
-#print ("in app")
-
-#api = Api(app)
-#cors = CORS(app, resources={r"/": {"origins": "*"}})
 
 ROBOT_NAME = "macbook"
 ROS_VERSION = "jade"
@@ -81,25 +76,6 @@ class GetCoreAddress(Resource):
 		print ("received core is active on" + json_data["coreAddress"])
 		return "ok"
 
-class GetEnvironment(Resource):
-
-    decorators = [cross_origin(origin="*", headers=["content-type", "autorization"])]
-
-    def get(self):
-        import json
-        #source = 'source ' + current_app.config["ROS_ENVS"]
-        dump = 'python -c "import os, json;print json.dumps(dict(os.environ))"'
-        pipe = subprocess.Popen(['/bin/bash', '-c', '%s' %(dump)], stdout=subprocess.PIPE)
-        env_info =  pipe.stdout.read()
-        _env = json.loads(env_info)
-        if 'LS_COLORS' in _env:
-            del _env['LS_COLORS']
-        # _env["PWD"] = current_app.config["CATKIN_FOLDER"]
-        _env["PWD"] = "/home/vagrant/ros/dotbot_ws/"
-        print _env
-        return _env
-
-api.add_resource(GetEnvironment, '/env')
 api.add_resource(GetCoreAddress, '/getCoreAddress')
 api.add_resource(RosKill, '/roskill')
 api.add_resource(Rosnode, '/rosnode')
@@ -110,9 +86,3 @@ api.add_resource(Roscore, '/roscore')
 @app.route('/')
 def index():
     return "Hello"
-
-@app.route('/old_discovery')
-@cross_origin(origin="*", headers=["content-type", "autorization"])
-def disc():
-    return jsonify({'name': ROBOT_NAME, 'ros': ROS_VERSION, 'hardware': 'macbook', 'ros_packages': ['rosserial', 'rosbridge']})
-
