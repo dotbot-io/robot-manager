@@ -1,7 +1,5 @@
-import subprocess
-import tempfile
-import os
-from flask import Blueprint
+import subprocess,tempfile,os
+from flask import Blueprint, jsonify
 from flask_restful import Resource, Api
 from flask_cors import CORS, cross_origin
 from app import app
@@ -15,15 +13,17 @@ class GetEnvironment(Resource):
 
 	def get(self):
 		import json
-		source1 = app.config("ROS_LOCAL_SOURCE")
-		source2 = app.config("ROS_GLOBAL_SOURCE")
+		source1 = app.config["ROS_LOCAL_SOURCE"]
+		source2 = app.config["ROS_GLOBAL_SOURCE"]
 		dump = 'python -c "import os, json;print json.dumps(dict(os.environ))"'
 		pipe = subprocess.Popen(['/bin/bash', '-c', '%s && %s && %s' %(source1,source2,dump)], stdout=subprocess.PIPE)
+		print pipe
 		env_info =  pipe.stdout.read()
+		print env_info
 		_env = json.loads(env_info)
 		if 'LS_COLORS' in _env:
 			del _env['LS_COLORS']
-		_env["PWD"] = app.config("CATKING_PATH")
+		_env["PWD"] = app.config["CATKING_PATH"]
 		return jsonify(_env)
 
 api.add_resource(GetEnvironment, '/env')

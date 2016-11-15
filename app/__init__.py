@@ -6,6 +6,7 @@ app = Flask(__name__)
 api = Api(app)
 cors = CORS(app, resources={r"/": {"origins": "*"}})
 
+app.config.from_object('config')
 
 from app.compiler import compiler_bp
 app.register_blueprint(compiler_bp)
