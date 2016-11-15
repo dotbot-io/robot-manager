@@ -12,4 +12,4 @@ from app.compiler import compiler_bp
 app.register_blueprint(compiler_bp)
 
 from app import views
-
+from . import compiler

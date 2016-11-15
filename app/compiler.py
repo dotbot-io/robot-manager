@@ -6,12 +6,14 @@ from app import app
 from app import api
 
 compiler_bp = Blueprint('compiler', __name__)
+api_bp = Api(compiler_bp)
 
 class GetEnvironment(Resource):
 
 	decorators = [cross_origin(origin="*", headers=["content-type", "autorization"])]
 
 	def get(self):
+		return "ok"
 		import json
 		source1 = app.config["ROS_LOCAL_SOURCE"]
 		source2 = app.config["ROS_GLOBAL_SOURCE"]
@@ -26,4 +28,4 @@ class GetEnvironment(Resource):
 		_env["PWD"] = app.config["CATKING_PATH"]
 		return jsonify(_env)
 
-api.add_resource(GetEnvironment, '/env')
+api_bp.add_resource(GetEnvironment, '/env')
