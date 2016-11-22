@@ -2,11 +2,12 @@
 from flask import Flask
 from config import config
 from flask_cors import CORS
+from flask.ext.sqlalchemy import SQLAlchemy
 
 
 cors = CORS(resources={r"/": {"origins": "*"}})
 
-
+db = SQLAlchemy()
 
 def create_app(config_name):
     app = Flask(__name__)

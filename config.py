@@ -13,11 +13,13 @@ class Config:
 
     SQLALCHEMY_DATABASE_URI = os.environ.get('SQLALCHEMY_DATABASE_URI', 'sqlite:///' + os.path.join(basedir, 'data-dev.sqlite'))
 
+    REDIS_URL = "redis://localhost"
 
     @staticmethod
     def init_app(app):
         pass
 
+DOTBOT_PACKAGE_NAME = os.environ.get('DOTBOT_PACKAGE_NAME') or 'dotbot_app'
 
 class MacLudoConfig(Config):
     ROS_GLOBAL_SOURCE = 'source /opt/ros/jade/setup.bash'
@@ -29,8 +31,14 @@ class VagrantConfig(Config):
     ROS_LOCAL_SOURCE = 'source /home/vagrant/ros/dotbot_ws/devel/setup.bash'
     CATKIN_PATH = "/home/vagrant/ros/dotbot_ws/"
 
+class UbuntuAntonConfig(Config):
+    ROS_GLOBAL_SOURCE = 'source /opt/ros/indigo/setup.bash'
+    ROS_LOCAL_SOURCE = 'source /home/rhaeg/ros/dotbot_ws/devel/setup.bash'
+    CATKIN_PATH = "/home/rhaeg/ros/dotbot_ws/"
+
 config = {
     'vagrant': VagrantConfig,
     'macludo': MacLudoConfig,
+    'ubuntuanton': UbuntuAntonConfig,
     'default': VagrantConfig
 }

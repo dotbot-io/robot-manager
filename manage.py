@@ -6,11 +6,10 @@ from server import create_app
 # from flask_migrate import Migrate, MigrateCommand
 import os
 
-app = create_app(os.getenv('FLASK_CONFIG') or 'default')
+app = create_app(os.getenv('FLASK_CONFIG') or 'ubuntuanton')
 manager = Manager(app)
 is_sqlite = app.config['SQLALCHEMY_DATABASE_URI'].startswith('sqlite:')
 # migrate = Migrate(app, db, render_as_batch=is_sqlite)
-
 
 @manager.command
 def hello():
