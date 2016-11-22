@@ -17,14 +17,14 @@ class Robot(Resource):
 		try:
 			return jsonify({'name': envVars['USER'],
 			'ros': envVars['ROS_DISTRO'],
-			'hardware': envVars['SESSION_MANAGER'].split('/')[1].split(':')[0],
+			'hardware': envVars['SESSION_MANAGER'].split('/')[1].split(':')[0] or 'None',
 			'message': 'hi, i am '+ROBOT_NAME,
 			'ros_packages': ['rosserial', 'rosbridge'],
-			'OS' : envVars['SESSION'],
-			'ros_ip' : envVars['ROS_IP']})
+			'OS' : envVars['SESSION'] or 'Ubuntu',
+			'ros_ip' : envVars['ROS_IP'] or 'None'})
 		except:
 			return jsonify({
-				'message': 'defauly message, some of environment variables were not found',
+				'message': 'default message, some of environment variables were not found',
 				})
 
 rest_api.add_resource(Robot, '/discovery')

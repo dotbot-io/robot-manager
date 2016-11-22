@@ -1,10 +1,14 @@
+import gevent
+import gevent.monkey
+from gevent.pywsgi import WSGIServer
+gevent.monkey.patch_all()
+
 from flask import jsonify, current_app, Response
 from flask_restful import Resource
 from flask_cors import cross_origin
 from . import rest_api
 from utilities import obtainEnvVars, getRunningNodes
-import subprocess,os, flask_sse
-from json import dumps
+import subprocess,os
 
 
 class GetEnvironment(Resource):
@@ -69,6 +73,7 @@ class Catkin(Resource):
 		def events():
 			for line in iter(pipe.stdout.readline,''):
 				yield "data: %s \n\n" % (line)
+				gevent.sleep(1)
 		return Response(events(), content_type='text/event-stream')
 
 def executeCatkin():

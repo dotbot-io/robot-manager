@@ -6,7 +6,7 @@ def obtainEnvVars():
 	source1, source2 = registerSources()
 	dump = 'python -c "import os, json;print json.dumps(dict(os.environ))"'
 	pipe = subprocess.Popen(['/bin/bash', '-c', '%s && %s && %s' %(source1,source2,dump)], stdout=subprocess.PIPE)
-	env_info =  pipe.stdout.read()
+	env_info = pipe.stdout.read()
 	return json.loads(env_info)
 
 def registerSources():
