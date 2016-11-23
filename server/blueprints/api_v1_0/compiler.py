@@ -81,14 +81,14 @@ class Catkin(Resource):
 			for l in tmplist:
 				q.put(l)
 			subscriptions.append(q)
-    		try:
-    			while True:
-	                result = q.get()
-	                ev = ServerSentEvent(str(result))
-	                yield ev.encode()
-	        except GeneratorExit: # Or maybe use flask signals
-	            subscriptions.remove(q)
-	            print("---------------------failed-------------------")
+			try:
+				while True:
+					result = q.get()
+					ev = ServerSentEvent(str(result))
+					yield ev.encode()
+			except GeneratorExit: # Or maybe use flask signals
+				subscriptions.remove(q)
+				print("---------------------failed-------------------")
 				# for line in iter(pipe.stdout.readline,''):
 				# 	ev = ServerSentEvent(str(result))
 				# 	yield "data: %s \n\n" % (line)
@@ -100,28 +100,28 @@ class debug(Resource):
 	decorators = [cross_origin()]
 
 	def get(self):
-    debug_template = """
-     <html>
-       <head>
-       </head>
-       <body>
-         <h1>Server sent events</h1>
-         <div id="event"></div>
-         <script type="text/javascript">
+	debug_template = """
+	 <html>
+	   <head>
+	   </head>
+	   <body>
+		 <h1>Server sent events</h1>
+		 <div id="event"></div>
+		 <script type="text/javascript">
 
-         var eventOutputContainer = document.getElementById("event");
-         var evtSrc = new EventSource("/subscribe");
+		 var eventOutputContainer = document.getElementById("event");
+		 var evtSrc = new EventSource("/subscribe");
 
-         evtSrc.onmessage = function(e) {
-             console.log(e.data);
-             eventOutputContainer.innerHTML = e.data;
-         };
+		 evtSrc.onmessage = function(e) {
+			 console.log(e.data);
+			 eventOutputContainer.innerHTML = e.data;
+		 };
 
-         </script>
-       </body>
-     </html>
-    """
-    return(debug_template)
+		 </script>
+	   </body>
+	 </html>
+	"""
+	return(debug_template)
 
 
 # class Catkin(Resource):
@@ -152,23 +152,23 @@ def executeCatkin():
 
 class ServerSentEvent(object):
 
-    def __init__(self, data):
-        self.data = data
-        self.event = None
-        self.id = None
-        self.desc_map = {
-            self.data : "data",
-            self.event : "event",
-            self.id : "id"
-        }
-    subscriptions = []
-    def encode(self):
-        if not self.data:
-            return ""
-        lines = ["%s: %s" % (v, k) 
-                 for k, v in self.desc_map.iteritems() if k]
-        
-        return "%s\n\n" % "\n".join(lines)
+	def __init__(self, data):
+		self.data = data
+		self.event = None
+		self.id = None
+		self.desc_map = {
+			self.data : "data",
+			self.event : "event",
+			self.id : "id"
+		}
+	subscriptions = []
+	def encode(self):
+		if not self.data:
+			return ""
+		lines = ["%s: %s" % (v, k) 
+				 for k, v in self.desc_map.iteritems() if k]
+		
+		return "%s\n\n" % "\n".join(lines)
 
 rest_api.add_resource(Compile, '/compile')
 rest_api.add_resource(Catkin, '/catkin')
