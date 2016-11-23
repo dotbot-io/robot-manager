@@ -12,6 +12,7 @@ from utilities import obtainEnvVars, getRunningNodes
 import subprocess,os
 import json
 
+subscriptions = []
 
 class GetEnvironment(Resource):
 
@@ -100,28 +101,28 @@ class debug(Resource):
 	decorators = [cross_origin()]
 
 	def get(self):
-	debug_template = """
-	 <html>
-	   <head>
-	   </head>
-	   <body>
-		 <h1>Server sent events</h1>
-		 <div id="event"></div>
-		 <script type="text/javascript">
+		debug_template = """
+		 <html>
+		   <head>
+		   </head>
+		   <body>
+			 <h1>Server sent events</h1>
+			 <div id="event"></div>
+			 <script type="text/javascript">
 
-		 var eventOutputContainer = document.getElementById("event");
-		 var evtSrc = new EventSource("/subscribe");
+			 var eventOutputContainer = document.getElementById("event");
+			 var evtSrc = new EventSource("/subscribe");
 
-		 evtSrc.onmessage = function(e) {
-			 console.log(e.data);
-			 eventOutputContainer.innerHTML = e.data;
-		 };
+			 evtSrc.onmessage = function(e) {
+				 console.log(e.data);
+				 eventOutputContainer.innerHTML = e.data;
+			 };
 
-		 </script>
-	   </body>
-	 </html>
-	"""
-	return(debug_template)
+			 </script>
+		   </body>
+		 </html>
+		"""
+		return(debug_template)
 
 
 # class Catkin(Resource):
@@ -161,7 +162,7 @@ class ServerSentEvent(object):
 			self.event : "event",
 			self.id : "id"
 		}
-	subscriptions = []
+	
 	def encode(self):
 		if not self.data:
 			return ""
