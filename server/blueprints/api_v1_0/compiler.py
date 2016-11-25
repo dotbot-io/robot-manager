@@ -1,16 +1,9 @@
-# import gevent
-# import gevent.monkey
-# # from gevent.pywsgi import WSGIServer
-# gevent.monkey.patch_all()
-
 from flask import jsonify, current_app, Response
 from flask_restful import Resource
 from flask_cors import cross_origin
 from . import rest_api
 from utilities import obtainEnvVars, getRunningNodes
 import subprocess,os
-# import json
-
 
 class GetEnvironment(Resource):
 
@@ -56,17 +49,25 @@ class Compile(Resource):
 	def post(self, node):
 		os.chdir(current_app.config["CATKIN_PATH"])
 		if node.catkin_initialized == True:
-			subprocess.Popen(['catkin_make', 'src_' + str(node.id) + '_' + current_app.config["DOTBOT_PACKAGE_NAME"]+'_node'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=self.env())
+			pipe = subprocess.Popen(['catkin_make', 'src_' + str(node.id) + '_' + current_app.config["DOTBOT_PACKAGE_NAME"]+'_node'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=self.env())
+			def events():
+				for line in iter(pipe.stdout.readline,''):
+					yield "data: %s \n\n" % (line)
+			return Response(events(), content_type='text/event-stream')
 		else:
-			executeCatkin()
+			pipe = executeCatkin()
 			node.catkin_initialized = True
-		return True
-		# add indication for the user to know that the compilation was succesful or not
+			def events():
+				for line in iter(pipe.stdout.readline,''):
+					yield "data: %s \n\n" % (line)
+			return Response(events(), content_type='text/event-stream')
+
+	def options(self):
+		pass
 
 class Catkin(Resource):
 
-	# decorators = [cross_origin()]
-	decorators = [cross_origin(origin='*', headers=['accept', 'Content-Type'])]
+	decorators = [cross_origin()]
 
 	def get(self):
 		retu = []
@@ -75,34 +76,10 @@ class Catkin(Resource):
 		def events():
 			for line in iter(pipe.stdout.readline,''):
 				yield "data: %s \n\n" % (line)
-				# gevent.sleep(1)
 		return Response(events(), content_type='text/event-stream')
 
 	def options(self):
 		pass
-
-# class Catkin(Resource):
-
-# 	decorators = [cross_origin()]
-
-# 	def get(self):
-# 		retu = [1,2,3,4,5,6,7,8,9,10]
-		
-# 		response.headers['content-type'] = 'text/event-stream'
-# 		response.headers['Access-Control-Allow-Origin'] = '*'
-
-# 		for line in iter(pipe.stdout.readline,''):
-# 			yield "data: %s \n\n" % (line)
-#  			gevent.sleep(1)
-
-# 	def options():
-# 		response.headers.update({
-# 			'Access-Control-Allow-Origin': '*',
-# 			'Access-Control-Allow-Methods': 'GET, OPTIONS',
-# 			'Access-Control-Allow-Headers': 'X-REQUESTED-WITH, CACHE-CONTROL, LAST-EVENT-ID',
-# 			'Content-Type': 'text/plain'
-# 		})
-# 		return ''
 
 def executeCatkin():
 	return subprocess.Popen(['catkin_make', '--force-cmake'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=obtainEnvVars())

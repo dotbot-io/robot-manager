@@ -15,13 +15,13 @@ class Robot(Resource):
 	def get(self):
 		envVars = obtainEnvVars()
 		try:
-			return jsonify({'name': envVars['USER'],
-			'ros': envVars['ROS_DISTRO'],
-			'hardware': envVars['SESSION_MANAGER'].split('/')[1].split(':')[0] or 'None',
+			return jsonify({'name': envVars.get('USER',"Undefined"),
+			'ros': envVars.get('ROS_DISTRO',"Undefined"),
 			'message': 'hi, i am '+ROBOT_NAME,
 			'ros_packages': ['rosserial', 'rosbridge'],
-			'OS' : envVars['SESSION'] or 'Ubuntu',
-			'ros_ip' : envVars['ROS_IP'] or 'None'})
+			'OS' : envVars.get('SESSION',"Undefined"),
+			'ros_ip' : envVars.get('ROS_IP',"Undefined"),
+			'test_none': envVars.get('blaaaaaaaa',"Undefined")})
 		except:
 			return jsonify({
 				'message': 'default message, some of environment variables were not found',
