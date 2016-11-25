@@ -9,7 +9,7 @@ from flask_cors import cross_origin
 from . import rest_api
 from utilities import obtainEnvVars, getRunningNodes
 import subprocess,os
-import json
+# import json
 
 
 class GetEnvironment(Resource):
@@ -65,7 +65,8 @@ class Compile(Resource):
 
 class Catkin(Resource):
 
-	decorators = [cross_origin()]
+	# decorators = [cross_origin()]
+	decorators = [cross_origin(origin='*', headers=['accept', 'Content-Type'])]
 
 	def get(self):
 		retu = []
@@ -75,7 +76,10 @@ class Catkin(Resource):
 			for line in iter(pipe.stdout.readline,''):
 				yield "data: %s \n\n" % (line)
 				# gevent.sleep(1)
-		return Response(events(), content_type='text/event-stream', headers={'Access-Control-Allow-Origin': '*'})
+		return Response(events(), content_type='text/event-stream')
+
+	def options(self):
+		pass
 
 # class Catkin(Resource):
 
