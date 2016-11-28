@@ -34,6 +34,7 @@ class VagrantConfig(Config):
 class UbuntuAntonConfig(Config):
     ROS_GLOBAL_SOURCE = 'source /opt/ros/indigo/setup.bash'
     ROS_LOCAL_SOURCE = 'source /home/rhaeg/ros/dotbot_ws/devel/setup.bash'
+    ROS_CATKIN_SOURCE = 'source /home/rhaeg/ros/catkin_ws/devel/setup.bash'
     CATKIN_PATH = "/home/rhaeg/ros/dotbot_ws/"
 
 config = {

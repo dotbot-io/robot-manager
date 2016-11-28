@@ -5,8 +5,18 @@ def obtainEnvVars():
 	import json
 	source1, source2 = registerSources()
 	dump = 'python -c "import os, json;print json.dumps(dict(os.environ))"'
-	pipe = subprocess.Popen(['/bin/bash', '-c', '%s && %s && %s' %(source1,source2,dump)], stdout=subprocess.PIPE)
+	pipe = subprocess.Popen(['/bin/bash', '-c', '%s && %s && %s' %(source1,source2,dump)], stdout=subprocess.PIPE, env={})
 	env_info = pipe.stdout.read()
+	return json.loads(env_info)
+
+def obtainTestEnvVars():
+	import json
+	source1, source2 = registerSources()
+	testsrc = 'source /home/rhaeg/ros/catkin_ws/devel/setup.bash'
+	dump = 'python -c "import os, json;print json.dumps(dict(os.environ))"'
+	pipe = subprocess.Popen(['/bin/bash', '-c', '%s \n %s \n %s' %(source1,testsrc,dump)], stdout=subprocess.PIPE, env={})
+	env_info = pipe.stdout.read()
+	print env_info
 	return json.loads(env_info)
 
 def registerSources():
