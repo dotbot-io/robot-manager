@@ -50,6 +50,11 @@ class File(db.Model):
 		code = json_file.get('code')
 		return File(filename=filename, code=code)
 
+	@staticmethod
+	def from_rest_args(args):
+		filename = args.filename
+		code = args.code
+		return File(filename=filename, code=code)
 
 class Node(db.Model):
 	__tablename__ = 'nodes'
@@ -60,6 +65,7 @@ class Node(db.Model):
 	created = db.Column(db.DateTime, default=datetime.utcnow)
 	catkin_initialized = db.Column(db.Boolean, default=False)
 	language = db.Column(db.String(8), default='cpp')
+
 
 	def create(self):
 		if not self.exist():
@@ -89,16 +95,24 @@ class Node(db.Model):
 	def executable(self):
 		if self.language == 'cpp':
 			return 'src_' + str(self.id) + '_' + current_app.config["DOTBOT_PACKAGE_NAME"]+'_node'
+			# return self.name + '.' + self.language
 		else:
-			return 'node_' + str(self.id) + '.' + self.language
+			# return 'node_' + str(self.id) + '.' + self.language
+			return self.name + '.' + self.language
 
 	def __repr__(self):
-		return '<Node %r>' % self.title
+		return '<Node %r - %r>' % (self.id, self.name)
 
 	@staticmethod
 	def from_json(json_node):
 		title = json_node.get('title')
 		language = json_node.get('language') or 'cpp'
+		return Node(name=title, language=language)
+
+	@staticmethod
+	def from_rest_args(args):
+		title = args.title
+		language = args.language or 'cpp'
 		return Node(name=title, language=language)
 
 	def to_json(self):
@@ -107,6 +121,7 @@ class Node(db.Model):
 			'name' : self.name,
 			'created' : self.created,
 			'files_cnt' : len(self.files),
-			'language' : self.language
+			'language' : self.language,
+			'executable' : self.executable()
 		}
 		return json_node

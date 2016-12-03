@@ -6,6 +6,7 @@ api = Blueprint('api_v1_0', __name__)
 rest_api = Api(api)
 
 from discovery import *
+from compile import *
 from compiler import *
 from roscore import *
 from rosnode import *

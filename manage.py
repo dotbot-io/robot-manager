@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from flask_script import Manager, Shell
+from flask_script import Manager, Shell, Server
 from server import create_app
 # from flask_migrate import Migrate, MigrateCommand
 import os

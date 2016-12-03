@@ -1,107 +1,80 @@
-from flask import jsonify, current_app, Response
-from flask_restful import Resource, reqparse
-from flask_cors import cross_origin
-from . import rest_api
-from utilities import obtainEnvVars, getRunningNodes,registerSources, obtainTestEnvVars
-import subprocess,os
-from ...models import Node
+import subprocess
+import tempfile
+import os
+from flask import current_app
+from utilities import obtainEnvVars,obtainTestEnvVars
 
-class GetEnvironment(Resource):
+class Compiler:
 
-	decorators = [cross_origin()]
+	def __init__ (self):
+		self._pnodes = {}
+		self._env = None
+		pass
 
-	def get(self):
+	def env(self):
 		_env = obtainEnvVars()
 		if 'LS_COLORS' in _env:
 			del _env['LS_COLORS']
 		_env["PWD"] = current_app.config["CATKIN_PATH"]
-		return jsonify(_env)
+		self._env = _env
+		return _env
 
+	def run(self, package, node):
+		import time
+		if not self.is_runnning(node.id):
+			list_before = self.running_proc()
+			pipe = subprocess.Popen(['rosrun', package, node.executable()],bufsize=1 ,stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=obtainTestEnvVars(),  universal_newlines=True)
+			time.sleep(1)
+			list_after = self.running_proc()
+			diff = lambda list_before,list_after: [x for x in list_after if x not in list_before]
+			new_node = diff(list_before,list_after)
+			# self._pnodes[node.id] = new_node[0]
+			return pipe
 
-class is_running(Resource):
+	def kill(self, node):
+		if self.is_runnning(node.id):
+			if node.id in self._pnodes.keys():
+				pipe = subprocess.Popen(['rosnode', 'kill', str(self._pnodes[node.id])], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=obtainTestEnvVars())
+				del(self._pnodes[node.id])
+				return pipe
 
-	decorators = [cross_origin()]
-
-	def get(self):
-		return "not defined"
-	def post(self, id):
-		runningNodes = getRunningNodes()
-		if id in runningNodes:
-			if runningNodes.poll() is None:
-				return True
+	def is_runnning(self, id):
+		if id in self._pnodes:
+			return True
 		return False
 
-class Catkin(Resource):
+	def catkin(self):
+		os.chdir(current_app.config["CATKIN_PATH"])
+		return subprocess.Popen(['catkin_make', '--force-cmake'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=obtainEnvVars())
 
-	decorators = [cross_origin()]
+	def execute_procedure(self, pipe):
+		while True:			
+			line = pipe.stdout.readline()
+			if line != '':
+				yield "data: %s \n\n" % (line)
+			else:
+				yield "data: FINISHIED \n\n"
+				break	
 
-	def get(self):
-		pipe = executeCatkin()
-		return Response(execute_procedure(pipe), content_type='text/event-stream')
-
-	def options(self):
-		pass
-
-class Build_Node(Resource):
-
-	decorators = [cross_origin()]
-
-	def post(self, id):
-		print (id)
-		n = Node.query.get_or_404(id)
-		pipe = compile(n)
-		return Response(execute_procedure(pipe), content_type='text/event-stream')
-
-	def options(self):
-		pass	
-
-class Run_Node(Resource):
-
-	decorators = [cross_origin()]
-	
-	def get(self):
-		parser = reqparse.RequestParser()
-		parser.add_argument('ider')
-		args = parser.parse_args()
-
-		#n = Node.query.get_or_404(id)
-		pipe = run('beginner_tutorials', 'talker.py')
-		return Response(execute_procedure(pipe), content_type='text/event-stream')
-
-	def options(self):
-		pass	
-
-def executeCatkin():
-	os.chdir(current_app.config["CATKIN_PATH"])
-	return subprocess.Popen(['catkin_make', '--force-cmake'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=obtainEnvVars())
-
-def execute_procedure(pipe):
-	while True:
-		line = pipe.stdout.readline()
-		if line != '':
-			yield "data: %s \n\n" % (line)
+	def compile(self, node):
+		if node.catkin_initialized == True:
+			pipe = subprocess.Popen(['catkin_make', 'src_' + str(node.id) + '_' + current_app.config["DOTBOT_PACKAGE_NAME"]+'_node'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=obtainEnvVars())
+			return pipe
 		else:
-			yield "data: FINISHIED \n\n"
-			break
+			pipe = catkin()
+			node.catkin_initialized = True
+			return pipe
 
-def compile(node):
-	if node.catkin_initialized == True:
-		pipe = subprocess.Popen(['catkin_make', 'src_' + str(node.id) + '_' + current_app.config["DOTBOT_PACKAGE_NAME"]+'_node'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=obtainEnvVars())
-		return pipe
-	else:
-		pipe = executeCatkin()
-		node.catkin_initialized = True
-		return pipe
+	def running_nodes(self):
+		return self._pnodes
 
-def run(package, node):
-	# if not is_runnning(node.id):
-		# pipe = subprocess.Popen(['rosrun', current_app.config["DOTBOT_PACKAGE_NAME"], node.executable()], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=obtainEnvVars())
-
-	pipe = subprocess.Popen(['rosrun', package, node], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=obtainTestEnvVars())
-	return pipe
-
-rest_api.add_resource(Catkin, '/catkin')
-rest_api.add_resource(GetEnvironment, '/env')
-rest_api.add_resource(is_running, '/is_running')
-rest_api.add_resource(Build_Node, '/build_node')
-rest_api.add_resource(Run_Node, '/run_node')
+	def running_proc(self):
+		pipe = subprocess.Popen(['rosnode', 'list'], stdout=subprocess.PIPE)
+		nodes_info = []
+		while True:
+			line = pipe.stdout.readline()
+			if line != '':
+				nodes_info.append(line.rstrip())
+			else:
+				break
+		return nodes_info
